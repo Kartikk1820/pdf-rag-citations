@@ -17,6 +17,12 @@ app = typer.Typer(add_completion=False, help="Ask questions over your PDFs, with
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 
+# Keep the terminal output clean: silence the per-request HTTP chatter from the
+# HTTP/LLM/vector-store client libraries. Our own INFO logs (e.g. ingest progress)
+# still show.
+for _noisy in ("httpx", "httpcore", "openai", "qdrant_client"):
+    logging.getLogger(_noisy).setLevel(logging.WARNING)
+
 
 def _print_answer(result: Answer) -> None:
     typer.echo("\nAnswer:")

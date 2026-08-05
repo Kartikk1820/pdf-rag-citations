@@ -84,6 +84,20 @@ def test_unanswerable_when_nothing_clears_threshold(monkeypatch):
     assert result.text == UNANSWERABLE_MESSAGE
 
 
+def test_leaked_index_markers_are_stripped_from_answer(monkeypatch):
+    hits = [Hit(text="Torture convention text.", source="c.pdf", page=5, score=0.9)]
+    llm = _LLMAnswer(
+        is_answerable=True,
+        answer="It referenced the UN Convention against Torture [1, 4, 6].",
+        used_chunk_indices=[0],
+    )
+    _patch_retrieval(monkeypatch, hits, llm)
+
+    result = rag.answer_question("Which convention?")
+    assert result.text == "It referenced the UN Convention against Torture."
+    assert "[" not in result.text
+
+
 def test_answered_but_no_indices_falls_back_to_top_hit(monkeypatch):
     hits = [Hit(text="Top relevant snippet.", source="a.pdf", page=5, score=0.8)]
     llm = _LLMAnswer(is_answerable=True, answer="Some answer.", used_chunk_indices=[])

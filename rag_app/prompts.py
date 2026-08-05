@@ -14,6 +14,8 @@ supported by the snippets is allowed.
 the question at all. In that case leave "answer" empty.
 - When you answer, base every claim on the snippets and list the index numbers \
 of the snippets you actually used in "used_chunk_indices".
+- The "answer" text is for a reader and must NOT contain snippet index numbers or \
+bracketed references like [0] or [1, 2]. Put those only in "used_chunk_indices".
 - Keep the answer concise and factual.
 
 Respond with a single JSON object of exactly this shape:
