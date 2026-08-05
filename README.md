@@ -30,7 +30,7 @@ threshold, or the model reports the question isn't answerable, the app returns
 | PDF parsing    | `pypdf` |
 | Embeddings     | `fastembed` — **`BAAI/bge-small-en-v1.5`** (384-d, local/offline, free) |
 | Vector DB      | `qdrant-client` + Qdrant (local Docker) |
-| LLM            | OpenAI-compatible client → **OpenRouter** `meta-llama/llama-3.3-70b-instruct:free` (default) or **Groq** `llama-3.3-70b-versatile` (fallback) |
+| LLM            | OpenAI-compatible client → **OpenRouter** `google/gemma-4-26b-a4b-it:free` (default) or **Groq** `llama-3.3-70b-versatile` (fallback) |
 | CLI            | `typer` |
 | Robustness     | `tenacity` (retries), `json-repair` (JSON-mode recovery), `pydantic` (validation) |
 
@@ -67,6 +67,11 @@ python -m rag_app.cli ingest
 python -m rag_app.cli query "What is the leave policy?"
 python -m rag_app.cli chat      # interactive loop
 ```
+
+> OpenRouter's set of free models rotates over time. If the configured
+> `OPENROUTER_MODEL` returns a 404/429, pick any current `:free` model from
+> https://openrouter.ai/models?max_price=0 and update `.env`, or set
+> `LLM_PROVIDER=groq` to use the Groq fallback.
 
 Example output:
 
