@@ -18,5 +18,8 @@ qdrant_storage/
 # fastembed model cache (optional local cache dir)
 .fastembed_cache/
 
+# Personal interview prep (not for the public repo)
+PROJECT_GUIDE.md
+
 # OS
 .DS_Store
