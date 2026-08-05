@@ -1,0 +1,22 @@
+# Secrets
+.env
+
+# Data (PDFs are supplied separately)
+data/*.pdf
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# Qdrant local storage
+qdrant_storage/
+
+# fastembed model cache (optional local cache dir)
+.fastembed_cache/
+
+# OS
+.DS_Store
