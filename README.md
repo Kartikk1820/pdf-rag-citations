@@ -5,6 +5,10 @@ set of PDF documents and returns an accurate citation (document name, page numbe
 and the retrieved snippet) with every answer. If the answer isn't in the PDFs, it
 says so rather than guessing.
 
+## Demo Video Link
+
+https://drive.google.com/file/d/14MltYyhRb63MkBhF_0ZjPEcRabQcjyKA/view?usp=sharing
+
 ## Architecture
 
 ```
