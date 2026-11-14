@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Chat{% endblock %}
+{% block heading %}Chat{% endblock %}
+{% block subheading %}Hybrid search + reranking, grounded with page-level citations{% endblock %}
+{% block topbar_actions %}
+<button class="btn secondary" id="reset-btn">New Chat</button>
+{% endblock %}
+
+{% block content %}
+<div class="chat-layout">
+  <div class="card chat-filters">
+    <div class="section-title" style="margin-top:0;">Scope</div>
+    {% if sources %}
+      {% for s in sources %}
+      <label class="doc-checkbox">
+        <input type="checkbox" class="source-checkbox" value="{{ s }}" checked />
+        {{ s }}
+      </label>
+      {% endfor %}
+    {% else %}
+      <div class="stat-meta">No documents indexed yet. Go to Document Library to ingest some.</div>
+    {% endif %}
+  </div>
+
+  <div class="card chat-panel">
+    <div class="chat-messages" id="chat-messages">
+      {% if not history %}
+      <div class="empty-state" id="empty-state">Ask a question about your documents to get started.</div>
+      {% endif %}
+      {% for turn in history %}
+      <div class="msg user"><div class="msg-bubble">{{ turn.question }}</div></div>
+      <div class="msg assistant">
+        <div class="msg-bubble {{ 'unanswered' if turn.mode == 'refused' }}">{{ turn.answer }}</div>
+        {% if turn.mode == 'general' %}
+        <div class="mode-badge general">General knowledge — not from your documents</div>
+        {% endif %}
+        {% if turn.mode == 'document_list' %}
+        <div class="mode-badge neutral">From your Document Library</div>
+        {% endif %}
+        {% if turn.suggestions %}
+        <div class="suggestions">
+          {% for s in turn.suggestions %}
+          <button class="suggestion-chip" data-source="{{ s.source }}">{{ s.source }} · Page {{ s.page }}</button>
+          {% endfor %}
+        </div>
+        {% endif %}
+        {% if turn.citations %}
+        <div class="citations">
+          {% for c in turn.citations %}
+          <div class="citation">
+            <div class="citation-head">
+              <a href="/files/{{ c.source }}#page={{ c.page }}" target="_blank">{{ c.source }} · Page {{ c.page }}</a>
+            </div>
+            <div class="citation-snippet">"{{ c.snippet }}"</div>
+            <div class="confidence-row">
+              <div class="meter"><div class="meter-fill" style="width:{{ (c.confidence * 100)|round|int }}%"></div></div>
+              <span class="confidence-label">{{ (c.confidence * 100)|round|int }}%</span>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="chat-input-row">
+      <input type="text" id="question-input" placeholder="Ask a question about your documents…" autocomplete="off" />
+      <button class="btn" id="send-btn">Ask</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/chat.js"></script>
+{% endblock %}

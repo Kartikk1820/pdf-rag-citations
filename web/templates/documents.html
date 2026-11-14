@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Document Library{% endblock %}
+{% block heading %}Document Library{% endblock %}
+{% block subheading %}Upload PDFs, then ingest to (re)build the index{% endblock %}
+{% block topbar_actions %}
+<button class="btn secondary" id="upload-btn" type="button">Upload PDF</button>
+<form method="post" action="/documents/ingest" style="display:inline">
+  <button class="btn" type="submit">Ingest All</button>
+</form>
+{% endblock %}
+
+{% block content %}
+
+{% if flash %}
+<div class="flash {{ flash_kind|default('success') }}">{{ flash }}</div>
+{% endif %}
+
+<form id="upload-form" method="post" action="/documents/upload" enctype="multipart/form-data">
+  <label class="dropzone" id="dropzone" for="file-input">
+    <div style="font-weight:600; margin-bottom:4px;">Drop PDF files here, or click to browse</div>
+    <div class="stat-meta">Multiple files supported · indexed on demand via "Ingest All"</div>
+    <input id="file-input" type="file" name="files" accept="application/pdf" multiple />
+  </label>
+</form>
+
+<div class="section-title">Indexed Documents</div>
+<div class="card" style="padding:0;">
+  {% if docs %}
+  <table>
+    <thead>
+      <tr><th>File</th><th>Size</th><th>Chunks</th><th>Status</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for d in docs %}
+      <tr>
+        <td>{{ d.name }}</td>
+        <td>{{ "%.0f"|format(d.size_bytes / 1024) }} KB</td>
+        <td>{{ d.chunks }}</td>
+        <td>
+          {% if d.ingested %}
+          <span class="badge success">Ingested</span>
+          {% else %}
+          <span class="badge warning">Not ingested</span>
+          {% endif %}
+        </td>
+        <td>
+          <form method="post" action="/documents/delete" onsubmit="return confirm('Delete {{ d.name }}?');">
+            <input type="hidden" name="filename" value="{{ d.name }}" />
+            <button class="btn danger" type="submit" style="padding:4px 10px; font-size:12px;">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state">No PDFs yet. Upload one above, then click "Ingest All".</div>
+  {% endif %}
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/documents.js"></script>
+{% endblock %}

@@ -14,7 +14,7 @@ Transient network/rate-limit errors are retried by ``tenacity``.
 
 import json
 import logging
-from typing import Type, TypeVar
+from typing import Iterator, Type, TypeVar
 
 from json_repair import repair_json
 from openai import APIConnectionError, APIError, OpenAI, RateLimitError
@@ -26,7 +26,7 @@ from tenacity import (
     wait_fixed,
 )
 
-from rag_app.config import get_settings
+from rag_app.config import get_settings, is_llm_configured
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +37,12 @@ _TRANSIENT_ERRORS = (RateLimitError, APIConnectionError, APIError)
 
 def _client() -> OpenAI:
     settings = get_settings()
+    if not is_llm_configured(settings):
+        key_env = "OPENROUTER_API_KEY" if settings.provider == "openrouter" else "GROQ_API_KEY"
+        raise ValueError(
+            f"Missing {key_env} for provider {settings.provider!r}. "
+            f"Set it on the Settings page or in your .env file."
+        )
     return OpenAI(api_key=settings.api_key, base_url=settings.base_url)
 
 
@@ -58,6 +64,33 @@ def _chat(system_prompt: str, user_prompt: str, *, temperature: float) -> str:
         ],
     )
     return response.choices[0].message.content or ""
+
+
+def stream_chat(
+    system_prompt: str, user_prompt: str, *, temperature: float = 0.3
+) -> Iterator[str]:
+    """Stream a plain-text (non-JSON) completion token-by-token.
+
+    Used for the narrated answer shown in the chat UI, kept separate from the
+    structured grounding call so citations stay deterministic regardless of
+    how the prose is phrased. Not wrapped in ``@retry``: once streaming has
+    started to the browser, restarting the call would duplicate output, so a
+    transient error here is simply surfaced to the caller.
+    """
+    settings = get_settings()
+    stream = _client().chat.completions.create(
+        model=settings.model,
+        temperature=temperature,
+        stream=True,
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ],
+    )
+    for event in stream:
+        delta = event.choices[0].delta.content if event.choices else None
+        if delta:
+            yield delta
 
 
 def _strip_markdown_fence(raw: str) -> str:

@@ -26,6 +26,8 @@ for _noisy in ("httpx", "httpcore", "openai", "qdrant_client"):
 
 def _print_answer(result: Answer) -> None:
     typer.echo("\nAnswer:")
+    if result.mode == "general":
+        typer.echo("(general knowledge -- not from your documents)")
     typer.echo(result.text)
     if result.citations:
         typer.echo("\nSources:")

@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Analytics{% endblock %}
+{% block heading %}Analytics{% endblock %}
+{% block subheading %}Observability for every question asked{% endblock %}
+
+{% block content %}
+
+<div class="grid grid-4">
+  <div class="card stat-card">
+    <div class="stat-label">Total Queries</div>
+    <div class="stat-value">{{ stats.total_queries }}</div>
+  </div>
+  <div class="card stat-card">
+    <div class="stat-label">Answer Rate</div>
+    <div class="stat-value">{{ "%.0f"|format(stats.answer_rate * 100) }}%</div>
+  </div>
+  <div class="card stat-card">
+    <div class="stat-label">Avg. Latency</div>
+    <div class="stat-value">{{ "%.0f"|format(stats.avg_latency_ms) }} ms</div>
+  </div>
+  <div class="card stat-card">
+    <div class="stat-label">Avg. Confidence</div>
+    <div class="stat-value">{{ "%.0f"|format(stats.avg_best_score * 100) }}%</div>
+  </div>
+</div>
+
+<div class="section-title">Recent Queries</div>
+<div class="card" style="padding:0;">
+  {% if recent %}
+  <table>
+    <thead>
+      <tr><th>Question</th><th>Status</th><th>Confidence</th><th>Latency</th><th>Model</th></tr>
+    </thead>
+    <tbody>
+      {% for r in recent %}
+      <tr>
+        <td style="max-width:360px;">{{ r.question }}</td>
+        <td>
+          {% if r.answered %}
+          <span class="badge success">Answered</span>
+          {% else %}
+          <span class="badge neutral">No match</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if r.best_score %}
+          <div style="display:flex; align-items:center; gap:8px;">
+            <div class="meter" style="width:60px;"><div class="meter-fill" style="width:{{ (r.best_score * 100)|round|int }}%"></div></div>
+            <span class="confidence-label">{{ (r.best_score * 100)|round|int }}%</span>
+          </div>
+          {% else %}
+          <span class="stat-meta">—</span>
+          {% endif %}
+        </td>
+        <td>{{ "%.0f"|format(r.latency_ms) }} ms</td>
+        <td>{{ r.model }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state">No queries logged yet — ask something in the Chat screen.</div>
+  {% endif %}
+</div>
+
+{% endblock %}

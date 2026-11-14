@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block heading %}Dashboard{% endblock %}
+{% block subheading %}System overview and pipeline configuration{% endblock %}
+{% block topbar_actions %}
+<a class="btn" href="/chat">Open Chat →</a>
+{% endblock %}
+
+{% block content %}
+
+{% if settings_error %}
+<div class="flash error">LLM provider not configured: {{ settings_error }} — fix it on the <a href="/settings" style="text-decoration:underline">Settings</a> page.</div>
+{% endif %}
+
+<div class="grid grid-4">
+  <div class="card stat-card">
+    <div class="stat-label">Documents</div>
+    <div class="stat-value">{{ doc_count }}</div>
+    <div class="stat-meta">{{ ingested_count }} ingested</div>
+  </div>
+  <div class="card stat-card">
+    <div class="stat-label">Indexed Chunks</div>
+    <div class="stat-value">{{ chunk_count }}</div>
+    <div class="stat-meta">Embedded · {{ settings.embedding_model if settings else "—" }}</div>
+  </div>
+  <div class="card stat-card">
+    <div class="stat-label">Questions Answered</div>
+    <div class="stat-value">{{ stats.total_queries }}</div>
+    <div class="stat-meta">{{ "%.0f"|format(stats.answer_rate * 100) }}% answer rate</div>
+  </div>
+  <div class="card stat-card">
+    <div class="stat-label">Avg. Latency</div>
+    <div class="stat-value">{{ "%.0f"|format(stats.avg_latency_ms) }} ms</div>
+    <div class="stat-meta">Avg. confidence {{ "%.0f"|format(stats.avg_best_score * 100) }}%</div>
+  </div>
+</div>
+
+<div class="section-title">Retrieval Pipeline</div>
+<div class="grid grid-2">
+  <div class="card">
+    <div style="font-weight:650; margin-bottom:10px;">Hybrid Search &amp; Reranking</div>
+    <div class="pipeline-steps">
+      <span class="pipeline-step">Multi-query rewrite</span>
+      <span class="pipeline-step">Dense (fastembed)</span>
+      <span class="pipeline-step">BM25 lexical</span>
+      <span class="pipeline-step">RRF fusion</span>
+      <span class="pipeline-step">Cross-encoder rerank</span>
+    </div>
+    <div style="margin-top:14px; display:flex; gap:18px;">
+      <div>
+        <div class="stat-label">Hybrid search</div>
+        <span class="badge {{ 'success' if settings and settings.enable_hybrid else 'neutral' }}">
+          {{ "Enabled" if settings and settings.enable_hybrid else "Disabled" }}
+        </span>
+      </div>
+      <div>
+        <div class="stat-label">Query rewriting</div>
+        <span class="badge {{ 'success' if settings and settings.enable_query_rewrite else 'neutral' }}">
+          {{ "Enabled" if settings and settings.enable_query_rewrite else "Disabled" }}
+        </span>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div style="font-weight:650; margin-bottom:10px;">System Configuration</div>
+    <table>
+      <tr><td>LLM Provider</td><td>{{ settings.provider if settings else "—" }}</td></tr>
+      <tr><td>Model</td><td>{{ settings.model if settings else "—" }}</td></tr>
+      <tr><td>Embedding model</td><td>{{ settings.embedding_model if settings else "—" }}</td></tr>
+      <tr><td>Reranker</td><td>{{ settings.reranker_model if settings else "—" }}</td></tr>
+      <tr><td>Vector store</td><td>Embedded Qdrant ({{ settings.qdrant_path if settings else "—" }})</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="section-title">Quick Actions</div>
+<div style="display:flex; gap:10px;">
+  <a class="btn secondary" href="/documents">Manage Documents</a>
+  <a class="btn secondary" href="/analytics">View Analytics</a>
+  <a class="btn secondary" href="/settings">Tune Retrieval Settings</a>
+</div>
+
+{% endblock %}
